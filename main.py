@@ -4,6 +4,52 @@ import pickle
 from fastapi import FastAPI, Header, HTTPException
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>LSTM Text Generator</title>
+        <style>
+            body { font-family: Arial; background:#0f172a; color:white; padding:40px; }
+            textarea { width:100%; height:100px; font-size:16px; }
+            button { padding:10px 20px; margin-top:10px; font-size:16px; }
+            .box { max-width:700px; margin:auto; }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <h1>🔥 LSTM Text Generator</h1>
+            <textarea id="prompt" placeholder="Type something..."></textarea>
+            <br>
+            <button onclick="generate()">Generate</button>
+            <h3>Output:</h3>
+            <p id="output"></p>
+        </div>
+
+        <script>
+        async function generate() {
+            const text = document.getElementById("prompt").value;
+            const res = await fetch(
+                `/generate?prompt=${encodeURIComponent(text)}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "x-api-key": "bro-this-is-my-ml-api"
+                    }
+                }
+            );
+            const data = await res.json();
+            document.getElementById("output").innerText = data.generated_text;
+        }
+        </script>
+    </body>
+    </html>
+    """
+
 # ====== CONFIG ======
 import os
 API_KEY = os.getenv("API_KEY")
@@ -46,3 +92,4 @@ def generate_text(prompt: str, x_api_key: str = Header(...)):
         "prompt": prompt,
         "generated_text": text
     }
+
