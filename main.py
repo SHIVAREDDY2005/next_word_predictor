@@ -30,20 +30,35 @@ def home():
     <html>
     <body style="font-family:Arial; padding:40px;">
         <h2>🔥 Next Word Predictor</h2>
+
+        <label>API Key:</label><br>
+        <input id="apikey" type="text" style="width:400px;"><br><br>
+
+        <label>Enter Text:</label><br>
         <textarea id="prompt" rows="4" cols="60"></textarea><br><br>
+
         <button onclick="generate()">Generate</button>
         <p id="output"></p>
 
         <script>
         async function generate() {
             const text = document.getElementById("prompt").value;
+            const apiKey = document.getElementById("apikey").value;
+
             const res = await fetch(
                 `/generate?prompt=${encodeURIComponent(text)}`,
                 {
                     method: "POST",
-                    headers: { "x-api-key": "bro-this-is-my-ml-api" }
+                    headers: { "x-api-key": apiKey }
                 }
             );
+
+            if (!res.ok) {
+                document.getElementById("output").innerText =
+                    "❌ Invalid API Key or error";
+                return;
+            }
+
             const data = await res.json();
             document.getElementById("output").innerText = data.generated_text;
         }
@@ -51,6 +66,7 @@ def home():
     </body>
     </html>
     """
+
 
 @app.post("/generate")
 def generate_text(prompt: str, x_api_key: str = Header(...)):
@@ -64,3 +80,4 @@ def generate_text(prompt: str, x_api_key: str = Header(...)):
         text += " " + index_word.get(np.argmax(pred), "")
 
     return {"generated_text": text}
+
